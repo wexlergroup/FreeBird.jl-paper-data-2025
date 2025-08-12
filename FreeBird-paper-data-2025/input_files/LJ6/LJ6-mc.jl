@@ -20,7 +20,25 @@ mc_params = MetropolisMCParameters(
     sampling_steps=num_sampling_steps,
     step_size=step_size,
     step_size_up=1.0,
-    accept_range=(0.5,0.5)
+    accept_range=(0.5,0.5),
+    random_seed=Int(round(time()))
 )
 
 mc_energies, mc_ls, mc_cvs, acceptance_rates = monte_carlo_sampling(at, lj, mc_params)
+
+# Save the equilibrated configurations
+write_walkers("output_mc.tarj.extxyz", mc_ls.walkers)
+
+# Save the energies and specific heats
+using DataFrames
+
+df = DataFrame()
+
+kb = 8.617333262145e-5 # eV/K
+dof = 6 * 3
+
+df.Temp = temperatures
+df.energy = mc_energies
+df.Cv = mc_cvs .+ dof * kb / 2 # adding kinetic contribution
+
+write_df("output_df_mc.csv", df)

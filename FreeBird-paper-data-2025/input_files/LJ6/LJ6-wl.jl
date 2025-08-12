@@ -15,7 +15,6 @@ ls = LJAtomWalkers(ats, lj)
 initial_walker = deepcopy(ats[1])
 
 step_size = 1.0 
-
 energy_min = -1.26
 energy_max = 0.0
 num_energy_bins = 1000
@@ -26,6 +25,14 @@ wl_params = WangLandauParameters(num_steps=10_000,
                             num_energy_bins=num_energy_bins, 
                             step_size=step_size,
                             max_iter=10000,
-                            f_min=1.00001)
+                            f_min=1.00001,
+                            random_seed=Int(round(time())))
 
 energies_wl, configs, wl_params, S, H = wang_landau(initial_walker, lj, wl_params)
+
+# Save the Wang-Landau results
+using DataFrames
+
+df_entropy = DataFrame(energy=wl_params.energy_bins, entropy=S)
+
+write_df("output_df_wl_entropy.csv", df_entropy)
