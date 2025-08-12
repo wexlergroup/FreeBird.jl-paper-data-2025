@@ -6,13 +6,12 @@ lj12 = LJParameters(epsilon=sqrt(0.1*0.05), sigma=2.5, cutoff=4.0)
 
 lj = CompositeLJParameters(2, [lj11, lj12, lj22])
 
-at = [FreeBirdIO.generate_multi_type_random_starting_config(50.0,[13,20];particle_types=[:H,:He]) for _ in 1:120]
-walkers = [AtomWalker(a) for a in at]
+walkers =AtomWalker.(generate_initial_configs(960, 281.25, [1,12]; particle_types=[:H,:He]))
 
 ls = LJAtomWalkers(walkers, lj)
 
-ns_params = NestedSamplingParameters(200, 0.1, 0.01, 1e-5, 1.0, 0, 200, 1234)
+ns_params = NestedSamplingParameters(mc_steps=400, step_size=0.1, random_seed=Int(round(time())))
 mc = MCRandomWalkClone()
-save = SaveEveryN(n_traj=100, n_snap=10_000)
+save = SaveEveryN(n_traj=100, n_snap=10_000, n_info=10)
 
-energies, liveset, _ = nested_sampling_loop!(ls, ns_params, 100_000, mc, save)
+energies, liveset, _ = nested_sampling(ls, ns_params, 500_000, mc, save)

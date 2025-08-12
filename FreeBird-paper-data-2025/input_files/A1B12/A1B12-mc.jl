@@ -13,7 +13,7 @@ ls = LJAtomWalkers(walkers, lj)
 
 at = deepcopy(ls.walkers[1])
 
-temperatures = collect(400.0:-25:100) 
+temperatures = collect(400.0:-25:100)
 num_equilibration_steps = 10_000_000
 num_sampling_steps = 5_000_000
 step_size = 1.0
@@ -24,7 +24,23 @@ mc_params = MetropolisMCParameters(
     sampling_steps=num_sampling_steps,
     step_size=step_size,
     step_size_up=0.5,
-    accept_range=(0.5, 0.5)
+    accept_range=(0.5, 0.5),
+    random_seed=random_seed=Int(round(time()))
 )
 
 mc_energies, mc_ls, mc_cvs, acceptance_rates = monte_carlo_sampling(at, lj, mc_params)
+
+write_walkers("output_mc.tarj.extxyz", mc_ls.walkers)
+
+using DataFrames
+
+df = DataFrame()
+
+kb = 8.617333262145e-5 # eV/K
+dof = 13 * 3
+
+df.Temp = temperatures
+df.energy = mc_energies
+df.Cv = mc_cvs .+ dof * kb / 2 # adding kinetic contribution
+
+write_df("output_df_mc.csv", df)
