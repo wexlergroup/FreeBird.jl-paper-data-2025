@@ -4,9 +4,7 @@ adsorption_energy = -0.04
 nn_energy = -0.01
 nnn_energy = -0.0025
 
-initial_lattice = SLattice{SquareLattice}(components=[[1,2,3,4]], 
-                        supercell_dimensions=(4,4,3), 
-                        adsorptions=collect(1:16))
+initial_lattice = SLattice{SquareLattice}(components=[[1,2,3,4]], supercell_dimensions=(4,4,3), adsorptions=collect(1:16))
 
 h = GenericLatticeHamiltonian(adsorption_energy, [nn_energy, nnn_energy], u"eV")
 
@@ -26,3 +24,17 @@ mc_params = MetropolisMCParameters(
 
 
 mc_energies, mc_ls, mc_cvs, acceptance_rates = monte_carlo_sampling(mc_lattice, h, mc_params)
+
+using DataFrames
+
+df = DataFrame()
+df.Temp = temperatures
+df.energy = mc_energies
+df.Cv = mc_cvs
+
+write_df("output_df_3d_mc.csv", df)
+
+df_conf = DataFrame()
+df_conf.configs = [conf.components[1] for conf in mc_ls]
+
+write_df("configs.arrow", df_conf)
